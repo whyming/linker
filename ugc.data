@@ -1,0 +1,58 @@
+pt"><link href="/zebrago/zs/static/js/ugcAddPoi.1e779857.js" rel="preload" as="script"><link href="/zebrago/zs/static/css/chunk-common.93d8f05f.css" rel="stylesheet"><link href="/zebrago/zs/static/css/chunk-vendors.72df46d5.css" rel="stylesheet"><link href="/zebrago/zs/static/css/ugcAddPoi.97bf7ca7.css" rel="stylesheet"></head><body><div id="app"></div><script src="//code.bdstatic.com/npm/vconsole@3.3.1/dist/vconsole.min.js"></script><script>var vConsole = new VConsole();</script><script src="//map-mobile-lbsapp.cdn.bcebos.com/yymap.min.20210414140253.js"></script><script src="//map.baidu.com/litemapapi?v=1.1"></script><script>// px2rem方案 基准大小
+        const baseSize = 200;
+        // 设置 rem 函数
+        function setRem () {
+            // 当前页面宽度相对于 750 宽的缩放比例，可根据自己需要修改。
+            const scale = document.documentElement.clientWidth / 750;
+            // 设置页面根节点字体大小
+            document.documentEpt"><link href="/zebrago/zs/static/js/ugcAddPoi.1e779857.js" rel="preload" as="script"><link href="/zebrago/zs/static/css/chunk-common.93d8f05f.css" rel="stylesheet"><link href="/zebrago/zs/static/css/chunk-vendors.72df46d5.css" rel="stylesheet"><link href="/zebrago/zs/static/css/ugcAddPoi.97bf7ca7.css" rel="stylesheet"></head><body><div id="app"></div><script src="//code.bdstatic.com/npm/vconsole@3.3.1/dist/vconsole.min.js"></script><script>var vConsole = new VConsole();</script><script src="//map-mobile-lbsapp.cdn.bcebos.com/yymap.min.20210414140253.js"></script><script src="//map.baidu.com/litemapapi?v=1.1"></script><script>// px2rem方案 基准大小
+        const baseSize = 200;
+        // 设置 rem 函数
+        function setRem () {
+            // 当前页面宽度相对于 750 宽的缩放比例，可根据自己需要修改。
+            const scale = document.documentElement.clientWidth / 750;
+            // 设置页面根节点字体大小
+            document.documentEpt"><link href="/zebrago/zs/static/js/ugcAddPoi.1e779857.js" rel="preload" as="script"><link href="/zebrago/zs/static/css/chunk-common.93d8f05f.css" rel="stylesheet"><link href="/zebrago/zs/static/css/chunk-vendors.72df46d5.css" rel="stylesheet"><link href="/zebrago/zs/static/css/ugcAddPoi.97bf7ca7.css" rel="stylesheet"></head><body><div id="app"></div><script src="//code.bdstatic.com/npm/vconsole@3.3.1/dist/vconsole.min.js"></script><script>var vConsole = new VConsole();</script><script src="//map-mobile-lbsapp.cdn.bcebos.com/yymap.min.20210414140253.js"></script><script src="//map.baidu.com/litemapapi?v=1.1"></script><script>// px2rem方案 基准大小
+        const baseSize = 200;
+        // 设置 rem 函数
+        function setRem () {
+            // 当前页面宽度相对于 750 宽的缩放比例，可根据自己需要修改。
+            const scale = document.documentElement.clientWidth / 750;
+            // 设置页面根节点字体大小
+            document.documentE   token: '5fe83865a1b64bb1abeb00511a83e58e',
+                        ignoreUrls: []
+                    },
+                    error: {
+                        collectWindowErrors: false,
+                        collectUnhandledRejections: false
+                    },
+                    perf: {
+                        sampleRate: 1,
+                        spa: true,
+                        history: true
+                    }
+                };
+                Weirwood.init(defaultOptions);
+            };
+            sc.parentNode.insertBefore(js, sc);
+        }(document, 'script'));</script><script src="/zebrago/zs/static/js/chunk-common.9f41d3ac.js"></script><script src="/zebrago/zs/static/js/chunk-vendors.068e6ce7.js"></script><script src="/zebrago/zs/static/js/ugcAddPoi.1e779857.js"></script></body></html>      js.onload = function (params) {
+                const defaultOptions = {
+                    common: {
+                        buildid: '2022-01-26',
+                        token: '5fe83865a1b64bb1abeb00511a83e58e',
+                        ignoreUrls: []
+                    },
+                    error: {
+                        collectWindowErrors: false,
+                        collectUnhandledRejections: false
+                    },
+                    perf: {
+                        sampleRate: 1,
+                        spa: true,
+                        history: true
+                    }
+                };
+                Weirwood.init(defaultOptions);
+            };
+            sc.parentNode.insertBefore(js, sc);
+        }(document, 'script'));</script><script src="/zebrago/zs/static/js/chunk-common.9f41d3ac.js"></script><script src="/zebrago/zs/static/js/chunk-vendors.068e6ce7.js"></script><script src="/zebrago/zs/static/js/ugcAddPoi.1e779857.js"></script></body></html>
