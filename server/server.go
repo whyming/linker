@@ -1,6 +1,9 @@
 package main
 
 import (
+	"linker/modules/bullet"
+	"linker/modules/session"
+	"linker/modules/tunnel"
 	"net"
 	"os"
 	"sync"
@@ -10,20 +13,22 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-var sessions sync.Map
-
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
-	// zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	// 监听端口，接收http请求
-	startHttp()
-	// 监听端口，连接客户端使用
-	startServer()
+	// 启动http服务
+	ss := session.NewSessions()
+	startHttp(ss)
+
+	// 启动tunnel
+	tun := startTunnel()
+
+	go bullet.Copy(ss, tun)
+	bullet.Copy(tun, ss)
 }
 
-func startHttp() {
+func startHttp(ss *session.Sessions) {
 	httpServer, err := net.Listen("tcp", ":8765")
 	if err != nil {
 		panic(err)
@@ -35,14 +40,10 @@ func startHttp() {
 			if err != nil {
 				break
 			}
+			// 每收到一个请求，只是加入session就行了
 			guid := guid()
 			log.Info().Uint64("guid", guid).Msg("new request")
-			req := &Request{
-				Conn: conn,
-				Guid: guid,
-			}
-			sessions.Store(guid, conn)
-			req.send()
+			ss.AddConn(guid, conn)
 		}
 	}()
 }
@@ -51,40 +52,28 @@ func guid() uint64 {
 	return uint64(time.Now().UnixNano())
 }
 
-func startServer() {
+func startTunnel() *tunnel.Tunnel {
 	server, err := net.Listen("tcp", "127.0.0.1:8777")
 	if err != nil {
 		panic(err)
 	}
 	log.Info().Msg("start server success")
+	tun := tunnel.NewTunnel()
 
 	lock := sync.Mutex{}
-	for {
-		lock.Lock()
-		conn, err := server.Accept()
-		if err != nil {
-			break
+	go func() {
+		for {
+			lock.Lock()
+			conn, err := server.Accept()
+			if err != nil {
+				break
+			}
+			log.Info().Msg("get new client")
+			tun.Bind(conn, func() {
+				log.Info().Msg("client tunnel closed")
+			})
+			lock.Unlock()
 		}
-		log.Info().Msg("get new client")
-		// 正向数据绑定
-		defaultForward.Bind(conn)
-		// 反向数据读取
-		readBack(conn)
-		lock.Unlock()
-		log.Info().Msg("client close")
-	}
-
-}
-
-func readBack(conn net.Conn) {
-	defer conn.Close()
-	for {
-		req := ReadRequest(conn)
-		if req == nil {
-			log.Info().Msg("get nil request")
-			// time.Sleep(100 * time.Millisecond)
-			return
-		}
-		defaultBack.Back(req)
-	}
+	}()
+	return tun
 }
