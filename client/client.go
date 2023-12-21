@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"io"
 	"net"
 	"os"
@@ -14,6 +15,15 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	sessionAddr = flag.String("s", "127.0.0.1:8001", "session server address")
+	tunnelAddr  = flag.String("t", "127.0.0.1:8777", "tunnel server address")
+)
+
+func init() {
+	flag.Parse()
+}
+
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
@@ -22,7 +32,7 @@ func main() {
 
 	ss := session.NewSessions()
 	ss.SetNew(func(guid uint64) io.ReadWriteCloser {
-		conn, err := net.Dial("tcp", "10.138.35.98:8001")
+		conn, err := net.Dial("tcp", *sessionAddr)
 		if err != nil {
 			log.Error().Err(err).Msg("connect to local session fail")
 		}
@@ -40,7 +50,7 @@ func connServer(tun *tunnel.Tunnel) {
 	}
 
 	log.Info().Msg("start to connect server")
-	conn, err := net.Dial("tcp", "127.0.0.1:8777")
+	conn, err := net.Dial("tcp", *tunnelAddr)
 	if err != nil {
 		log.Error().Err(err).Msg("connect to server fail")
 	} else {

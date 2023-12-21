@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"linker/modules/bullet"
 	"linker/modules/session"
 	"linker/modules/tunnel"
@@ -13,13 +14,22 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+var (
+	sessionAddr = flag.String("s", ":8777", "session server address")
+	tunnelAddr  = flag.String("t", ":8765", "tunnel server address")
+)
+
+func init() {
+	flag.Parse()
+}
+
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
 	// 启动http服务
 	ss := session.NewSessions()
-	startHttp(ss)
+	startSesionServer(ss)
 
 	// 启动tunnel
 	tun := startTunnel()
@@ -28,8 +38,8 @@ func main() {
 	bullet.Copy(tun, ss)
 }
 
-func startHttp(ss *session.Sessions) {
-	httpServer, err := net.Listen("tcp", ":8765")
+func startSesionServer(ss *session.Sessions) {
+	httpServer, err := net.Listen("tcp", *sessionAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -53,7 +63,7 @@ func guid() uint64 {
 }
 
 func startTunnel() *tunnel.Tunnel {
-	server, err := net.Listen("tcp", "127.0.0.1:8777")
+	server, err := net.Listen("tcp", *tunnelAddr)
 	if err != nil {
 		panic(err)
 	}
