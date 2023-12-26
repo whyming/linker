@@ -4,6 +4,9 @@ import (
 	"errors"
 	"io"
 	"linker/modules/bullet"
+	"os"
+	"path"
+	"strconv"
 	"sync"
 
 	"github.com/rs/zerolog/log"
@@ -50,12 +53,17 @@ func (s *Sessions) readSession(guid uint64, conn io.ReadWriteCloser) {
 			buf := make([]byte, 1000)
 			n, err := conn.Read(buf)
 			if err != nil {
-				log.Error().Err(err).Msg("read session error")
+				if err == io.EOF {
+					s.buff <- bullet.NewBullet(guid, bullet.CmdClose, []byte{})
+					log.Info().Uint64("guid", guid).Msg("session closed")
+				} else {
+					log.Error().Err(err).Msg("read session error")
+				}
 				s.RemoveConn(guid)
 				return
 			} else {
 				log.Debug().Uint64("guid", guid).Msgf("read session %d bytes", n)
-				s.buff <- bullet.NewBullet(guid, buf[:n])
+				s.buff <- bullet.NewBullet(guid, bullet.CmdData, buf[:n])
 			}
 		}
 	}()
@@ -81,7 +89,17 @@ func (s *Sessions) Write(b *bullet.Buttle) error {
 	if conn == nil {
 		return ErrSessionNotFound
 	}
-	_, err := conn.(io.ReadWriteCloser).Write(b.GetData())
+
+	var err error
+	switch b.GetCmd() {
+	case bullet.CmdClose:
+		s.RemoveConn(b.GetGuid())
+		conn.(io.ReadWriteCloser).Close()
+	case bullet.CmdData:
+		_, err = conn.(io.ReadWriteCloser).Write(b.GetData())
+	default:
+		err = errors.New("unknown cmd")
+	}
 	return err
 }
 
@@ -90,5 +108,16 @@ func (s *Sessions) Read() (*bullet.Buttle, error) {
 	if !ok {
 		return nil, errors.New("session read error")
 	}
+	writeFile(strconv.FormatInt(int64(b.GetGuid()), 10), b.GetData())
 	return b, nil
+}
+
+func writeFile(name string, data []byte) error {
+	f, err := os.OpenFile(path.Join("data/", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	_, err = f.Write(data)
+	return err
 }

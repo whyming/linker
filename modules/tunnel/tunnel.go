@@ -1,8 +1,6 @@
 package tunnel
 
 import (
-	"bytes"
-	"encoding/binary"
 	"errors"
 	"io"
 	"linker/modules/bullet"
@@ -62,37 +60,12 @@ func (t *Tunnel) readTunnel(conn io.ReadWriteCloser, onClose func()) {
 	go func() {
 		defer onClose()
 		for {
-			buff := make([]byte, 1024)
-			// 读取包长
-			n, err := t.conn.Read(buff[:4])
+			b, err := bullet.ReadFrom(conn)
 			if err != nil {
-				log.Error().Err(err).Msg("read data length fail")
+				log.Error().Err(err).Msg("read from tunnel fail")
 				return
 			}
-			if n != 4 {
-				log.Error().Msg("data length is not 4")
-				return
-			}
-			var len uint32
-			binary.Read(bytes.NewBuffer(buff[:4]), binary.BigEndian, &len)
-			// 长度超过1024，错误数据，重连
-			if len > 1024 || len < 8 {
-				log.Error().Uint32("length", len).Msg("data length not valid")
-				return
-			}
-			var readLen uint32
-			for readLen < len {
-				n, err := t.conn.Read(buff[readLen : len-readLen])
-				if err != nil {
-					log.Error().Err(err).Msg("read back data fail")
-					return
-				}
-				readLen += uint32(n)
-			}
-
-			var guid uint64
-			binary.Read(bytes.NewBuffer(buff[:8]), binary.BigEndian, &guid)
-			t.buff <- bullet.NewBullet(guid, buff[8:len])
+			t.buff <- b
 		}
 	}()
 }
