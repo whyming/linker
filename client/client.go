@@ -18,6 +18,7 @@ import (
 var (
 	sessionAddr = flag.String("s", "127.0.0.1:8001", "session server address")
 	tunnelAddr  = flag.String("t", "127.0.0.1:8777", "tunnel server address")
+	debug       = flag.Bool("d", false, "debug mode")
 )
 
 func init() {
@@ -30,7 +31,7 @@ func main() {
 	tun := tunnel.NewTunnel()
 	connServer(tun)
 
-	ss := session.NewSessions()
+	ss := session.NewSessions(*debug)
 	ss.SetNew(func(guid uint64) io.ReadWriteCloser {
 		conn, err := net.Dial("tcp", *sessionAddr)
 		if err != nil {

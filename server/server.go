@@ -17,6 +17,7 @@ import (
 var (
 	sessionAddr = flag.String("s", ":8777", "session server address")
 	tunnelAddr  = flag.String("t", ":8765", "tunnel server address")
+	debug       = flag.Bool("d", false, "debug mode")
 )
 
 func init() {
@@ -28,7 +29,7 @@ func main() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
 
 	// 启动http服务
-	ss := session.NewSessions()
+	ss := session.NewSessions(*debug)
 	startSesionServer(ss)
 
 	// 启动tunnel

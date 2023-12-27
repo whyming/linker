@@ -24,12 +24,14 @@ type Sessions struct {
 	conns sync.Map // map[uint64]net.Conn
 	buff  chan *bullet.Buttle
 	new   func(guid uint64) io.ReadWriteCloser
+	debug bool
 }
 
-func NewSessions() *Sessions {
+func NewSessions(isDebug bool) *Sessions {
 	return &Sessions{
 		conns: sync.Map{},
 		buff:  make(chan *bullet.Buttle, 128),
+		debug: isDebug,
 	}
 }
 
@@ -96,6 +98,9 @@ func (s *Sessions) Write(b *bullet.Buttle) error {
 		s.RemoveConn(b.GetGuid())
 		conn.(io.ReadWriteCloser).Close()
 	case bullet.CmdData:
+		if s.debug {
+			writeFile("write", strconv.FormatInt(int64(b.GetGuid()), 10), b.GetData())
+		}
 		_, err = conn.(io.ReadWriteCloser).Write(b.GetData())
 	default:
 		err = errors.New("unknown cmd")
@@ -108,12 +113,14 @@ func (s *Sessions) Read() (*bullet.Buttle, error) {
 	if !ok {
 		return nil, errors.New("session read error")
 	}
-	writeFile(strconv.FormatInt(int64(b.GetGuid()), 10), b.GetData())
+	if s.debug {
+		writeFile("read", strconv.FormatInt(int64(b.GetGuid()), 10), b.GetData())
+	}
 	return b, nil
 }
 
-func writeFile(name string, data []byte) error {
-	f, err := os.OpenFile(path.Join("data/", name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+func writeFile(dir string, name string, data []byte) error {
+	f, err := os.OpenFile(path.Join("data/", dir, name), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return err
 	}
