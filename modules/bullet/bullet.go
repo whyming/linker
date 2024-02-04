@@ -5,6 +5,8 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+
+	"github.com/rs/zerolog/log"
 )
 
 type Buttle struct {
@@ -93,13 +95,15 @@ type Reader interface {
 	Read() (*Buttle, error)
 }
 
-func Copy(dst Writer, src Reader) error {
+func Copy(direction string, dst Writer, src Reader) error {
 	for {
 		b, err := src.Read()
+		log.Debug().Str("direction", direction).Int("data-len", len(b.data)).Err(err).Msg("READ")
 		if err != nil {
 			return err
 		}
 		err = dst.Write(b)
+		log.Debug().Str("direction", direction).Int("data-len", len(b.data)).Err(err).Msg("Write")
 		if err != nil {
 			return err
 		}

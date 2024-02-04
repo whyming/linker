@@ -39,8 +39,8 @@ func main() {
 		}
 		return conn
 	})
-	go bullet.Copy(tun, ss)
-	bullet.Copy(ss, tun)
+	go bullet.Copy("session->tunnel", tun, ss)
+	bullet.Copy("tunnel->session", ss, tun)
 }
 
 func connServer(tun *tunnel.Tunnel) {

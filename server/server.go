@@ -35,8 +35,8 @@ func main() {
 	// 启动tunnel
 	tun := startTunnel()
 
-	go bullet.Copy(ss, tun)
-	bullet.Copy(tun, ss)
+	go bullet.Copy("tunnel->session", ss, tun)
+	bullet.Copy("session->tunnel", tun, ss)
 }
 
 func startSesionServer(ss *session.Sessions) {
