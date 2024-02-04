@@ -92,8 +92,8 @@ func startTunnel() *tunnel.Tunnel {
 			log.Info().Msg("get new client")
 			tun.Bind(conn, func() {
 				log.Info().Msg("client tunnel closed")
+				lock.Unlock()
 			})
-			lock.Unlock()
 		}
 	}()
 	return tun
