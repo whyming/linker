@@ -5,6 +5,7 @@ import (
 	"io"
 	"linker/modules/bullet"
 	"sync"
+	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -66,6 +67,10 @@ func (t *Tunnel) readTunnel(conn io.ReadWriteCloser, onClose func()) {
 		}()
 		for {
 			b, err := bullet.ReadFrom(conn)
+			if err == io.EOF {
+				time.Sleep(10 * time.Millisecond)
+				continue
+			}
 			if err != nil {
 				log.Error().Err(err).Msg("read from tunnel fail")
 				return
