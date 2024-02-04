@@ -51,6 +51,11 @@ func (s *Sessions) RemoveConn(guid uint64) {
 
 func (s *Sessions) readSession(guid uint64, conn io.ReadWriteCloser) {
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error().Msgf("readSession panic: %v", err)
+			}
+		}()
 		for {
 			buf := make([]byte, 1000)
 			n, err := conn.Read(buf)

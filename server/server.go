@@ -46,6 +46,11 @@ func startSesionServer(ss *session.Sessions) {
 	}
 	log.Info().Msg("start http server success")
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error().Msgf("startSesionServer panic: %v", err)
+			}
+		}()
 		for {
 			conn, err := httpServer.Accept()
 			if err != nil {
@@ -73,6 +78,11 @@ func startTunnel() *tunnel.Tunnel {
 
 	lock := sync.Mutex{}
 	go func() {
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error().Msgf("startTunnel panic: %v", err)
+			}
+		}()
 		for {
 			lock.Lock()
 			conn, err := server.Accept()

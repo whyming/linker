@@ -46,7 +46,7 @@ func ReadFrom(rd io.Reader) (*Buttle, error) {
 		return nil, ErrInvalidLength
 	}
 	length := binary.BigEndian.Uint32(buff[:OffsetLength])
-	if length > 1024 {
+	if length > 1024 || length < OffsetGuid+OffsetCmd {
 		return nil, ErrInvalidLength
 	}
 	n, err = rd.Read(buff[:length+1])

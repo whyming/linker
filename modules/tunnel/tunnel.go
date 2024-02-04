@@ -59,6 +59,11 @@ func (t *Tunnel) Bind(conn io.ReadWriteCloser, onClose func()) {
 func (t *Tunnel) readTunnel(conn io.ReadWriteCloser, onClose func()) {
 	go func() {
 		defer onClose()
+		defer func() {
+			if err := recover(); err != nil {
+				log.Error().Msgf("readTunnel panic: %v", err)
+			}
+		}()
 		for {
 			b, err := bullet.ReadFrom(conn)
 			if err != nil {
