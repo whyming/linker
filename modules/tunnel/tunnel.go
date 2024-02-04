@@ -50,9 +50,9 @@ func (t *Tunnel) Read() (*bullet.Buttle, error) {
 func (t *Tunnel) Bind(conn io.ReadWriteCloser, onClose func()) {
 	t.Lock()
 	defer t.Unlock()
-	if t.conn != nil {
-		t.conn.Close()
-	}
+	// if t.conn != nil {
+	// 	t.conn.Close()
+	// }
 	t.conn = conn
 	t.readTunnel(conn, onClose)
 }

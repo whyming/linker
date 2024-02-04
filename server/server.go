@@ -87,6 +87,7 @@ func startTunnel() *tunnel.Tunnel {
 			lock.Lock()
 			conn, err := server.Accept()
 			if err != nil {
+				lock.Unlock()
 				break
 			}
 			log.Info().Msg("get new client")
