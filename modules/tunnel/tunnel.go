@@ -5,7 +5,6 @@ import (
 	"io"
 	"linker/modules/bullet"
 	"sync"
-	"time"
 
 	"github.com/rs/zerolog/log"
 )
@@ -21,16 +20,16 @@ var (
 type Tunnel struct {
 	sync.RWMutex
 	conn io.ReadWriteCloser
-	buff chan *bullet.Buttle
+	buff chan *bullet.Bullet
 }
 
 func NewTunnel() *Tunnel {
 	return &Tunnel{
-		buff: make(chan *bullet.Buttle, 128),
+		buff: make(chan *bullet.Bullet, 128),
 	}
 }
 
-func (t *Tunnel) Write(b *bullet.Buttle) error {
+func (t *Tunnel) Write(b *bullet.Bullet) error {
 	t.RLock()
 	defer t.RUnlock()
 	if t.conn == nil {
@@ -39,7 +38,7 @@ func (t *Tunnel) Write(b *bullet.Buttle) error {
 	_, err := t.conn.Write(b.Bytes())
 	return err
 }
-func (t *Tunnel) Read() (*bullet.Buttle, error) {
+func (t *Tunnel) Read() (*bullet.Bullet, error) {
 	b, ok := <-t.buff
 	if !ok {
 		return nil, ErrTunnelClosed
@@ -50,9 +49,9 @@ func (t *Tunnel) Read() (*bullet.Buttle, error) {
 func (t *Tunnel) Bind(conn io.ReadWriteCloser, onClose func()) {
 	t.Lock()
 	defer t.Unlock()
-	// if t.conn != nil {
-	// 	t.conn.Close()
-	// }
+	if t.conn != nil {
+		t.conn.Close()
+	}
 	t.conn = conn
 	t.readTunnel(conn, onClose)
 }
@@ -67,10 +66,6 @@ func (t *Tunnel) readTunnel(conn io.ReadWriteCloser, onClose func()) {
 		}()
 		for {
 			b, err := bullet.ReadFrom(conn)
-			if err == io.EOF {
-				time.Sleep(10 * time.Millisecond)
-				continue
-			}
 			if err != nil {
 				log.Error().Err(err).Msg("read from tunnel fail")
 				return

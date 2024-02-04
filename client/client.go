@@ -28,11 +28,15 @@ func init() {
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
 	tun := tunnel.NewTunnel()
 	connServer(tun)
 
-	ss := session.NewSessions(*debug)
-	ss.SetNew(func(guid uint64) io.ReadWriteCloser {
+	ss := session.NewSessions()
+	ss.SetNew(func() io.ReadWriteCloser {
 		conn, err := net.Dial("tcp", *sessionAddr)
 		if err != nil {
 			log.Error().Err(err).Msg("connect to local session fail")
@@ -45,8 +49,8 @@ func main() {
 
 func connServer(tun *tunnel.Tunnel) {
 	reConnect := func() {
+		log.Info().Msg("connect to server fail,after 10s retry to connect")
 		time.Sleep(10 * time.Second)
-		log.Info().Msg("connect to server fail,try reconnect")
 		connServer(tun)
 	}
 
@@ -54,6 +58,7 @@ func connServer(tun *tunnel.Tunnel) {
 	conn, err := net.Dial("tcp", *tunnelAddr)
 	if err != nil {
 		log.Error().Err(err).Msg("connect to server fail")
+		reConnect()
 	} else {
 		tun.Bind(conn, reConnect)
 	}

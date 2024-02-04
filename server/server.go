@@ -7,7 +7,9 @@ import (
 	"linker/modules/tunnel"
 	"net"
 	"os"
+	"os/signal"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/rs/zerolog"
@@ -27,20 +29,23 @@ func init() {
 func main() {
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC3339})
-
-	// 启动http服务
-	ss := session.NewSessions(*debug)
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if *debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	ss := session.NewSessions()
 	startSesionServer(ss)
 
 	// 启动tunnel
 	tun := startTunnel()
 
+	SignalProcess(ss)
 	go bullet.Copy("tunnel->session", ss, tun)
 	bullet.Copy("session->tunnel", tun, ss)
 }
 
 func startSesionServer(ss *session.Sessions) {
-	httpServer, err := net.Listen("tcp", *sessionAddr)
+	server, err := net.Listen("tcp", *sessionAddr)
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +57,7 @@ func startSesionServer(ss *session.Sessions) {
 			}
 		}()
 		for {
-			conn, err := httpServer.Accept()
+			conn, err := server.Accept()
 			if err != nil {
 				break
 			}
@@ -98,4 +103,24 @@ func startTunnel() *tunnel.Tunnel {
 		}
 	}()
 	return tun
+}
+
+func SignalProcess(ss *session.Sessions) {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT)
+	go func() {
+		for {
+			s := <-c
+			if s == syscall.SIGINT {
+				ss.ListConn()
+			} else {
+				log.Info().Bool("change to", !*debug).Msg("change debug mode")
+				if *debug {
+					zerolog.SetGlobalLevel(zerolog.InfoLevel)
+				} else {
+					zerolog.SetGlobalLevel(zerolog.DebugLevel)
+				}
+			}
+		}
+	}()
 }

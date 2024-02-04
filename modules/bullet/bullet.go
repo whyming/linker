@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Buttle struct {
+type Bullet struct {
 	guid uint64
 	cmd  uint8
 	data []byte
@@ -28,27 +28,30 @@ const (
 var (
 	ErrInvalidLength = errors.New("invalid length")
 	ErrInvalidGuid   = errors.New("invalid guid")
+	ErrConnClosed    = errors.New("connection closed")
 )
 
-func NewBullet(guid uint64, cmd uint8, data []byte) *Buttle {
-	return &Buttle{
+func NewBullet(guid uint64, cmd uint8, data []byte) *Bullet {
+	return &Bullet{
 		guid: guid,
 		cmd:  cmd,
 		data: data,
 	}
 }
-func ReadFrom(rd io.Reader) (*Buttle, error) {
-	b := &Buttle{}
+func ReadFrom(rd io.Reader) (*Bullet, error) {
+	b := &Bullet{}
 	buff := make([]byte, 1024)
 	n, err := rd.Read(buff[:OffsetLength])
 	if err != nil {
 		return nil, err
 	}
 	if n < OffsetLength {
+		log.Error().Int("read from buff length n", n).Msg("read length bad")
 		return nil, ErrInvalidLength
 	}
 	length := binary.BigEndian.Uint32(buff[:OffsetLength])
-	if length > 1024 || length < OffsetGuid+OffsetCmd {
+	if length > 1024 || length+1 < OffsetGuid+OffsetCmd {
+		log.Error().Int("buff head length bad length n", n).Bytes("buff", buff[:OffsetLength]).Msg("read length not valid")
 		return nil, ErrInvalidLength
 	}
 	n, err = rd.Read(buff[:length+1])
@@ -68,18 +71,18 @@ func ReadFrom(rd io.Reader) (*Buttle, error) {
 	return b, nil
 }
 
-func (b *Buttle) GetGuid() uint64 {
+func (b *Bullet) GetGuid() uint64 {
 	return b.guid
 }
-func (b *Buttle) GetCmd() uint8 {
+func (b *Bullet) GetCmd() uint8 {
 	return b.cmd
 }
 
-func (b *Buttle) GetData() []byte {
+func (b *Bullet) GetData() []byte {
 	return b.data
 }
 
-func (b *Buttle) Bytes() []byte {
+func (b *Bullet) Bytes() []byte {
 	buff := bytes.NewBuffer([]byte{})
 	binary.Write(buff, binary.BigEndian, uint32(8+len(b.data))) // 4 bytes for length
 	binary.Write(buff, binary.BigEndian, b.guid)                // 8 bytes for guid
@@ -89,10 +92,10 @@ func (b *Buttle) Bytes() []byte {
 }
 
 type Writer interface {
-	Write(*Buttle) error
+	Write(*Bullet) error
 }
 type Reader interface {
-	Read() (*Buttle, error)
+	Read() (*Bullet, error)
 }
 
 func Copy(direction string, dst Writer, src Reader) error {
@@ -105,7 +108,7 @@ func Copy(direction string, dst Writer, src Reader) error {
 		err = dst.Write(b)
 		log.Debug().Str("direction", direction).Int("data-len", len(b.data)).Err(err).Msg("Write")
 		if err != nil {
-			return err
+			log.Error().Err(err).Msg("write session into to tunnel fail")
 		}
 	}
 }
