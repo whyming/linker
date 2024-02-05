@@ -45,6 +45,13 @@ func ReadFrom(rd io.Reader) (*Bullet, error) {
 	if err != nil {
 		return nil, err
 	}
+	for n < OffsetLength {
+		n2, err := rd.Read(buff[n:OffsetLength])
+		if err != nil {
+			return nil, err
+		}
+		n += n2
+	}
 	if n < OffsetLength {
 		log.Error().Int("read from buff length n", n).Msg("read length bad")
 		return nil, ErrInvalidLength
