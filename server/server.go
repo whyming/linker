@@ -114,6 +114,7 @@ func SignalProcess(ss *session.Sessions) {
 			if s == syscall.SIGINT {
 				ss.ListConn()
 			} else {
+				*debug = !*debug
 				log.Info().Bool("change to", !*debug).Msg("change debug mode")
 				if *debug {
 					zerolog.SetGlobalLevel(zerolog.InfoLevel)
