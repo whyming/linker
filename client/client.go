@@ -32,8 +32,6 @@ func main() {
 	if *debug {
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
-	tun := tunnel.NewTunnel()
-	connServer(tun)
 
 	ss := session.NewSessions()
 	ss.SetNew(func() io.ReadWriteCloser {
@@ -43,15 +41,19 @@ func main() {
 		}
 		return conn
 	})
+
+	tun := tunnel.NewTunnel()
+	connServer(tun, ss)
 	go bullet.Copy("session->tunnel", tun, ss)
 	bullet.Copy("tunnel->session", ss, tun)
 }
 
-func connServer(tun *tunnel.Tunnel) {
+func connServer(tun *tunnel.Tunnel, ss *session.Sessions) {
 	reConnect := func() {
+		ss.CleanUp()
 		log.Info().Msg("connect to server fail,after 10s retry to connect")
 		time.Sleep(10 * time.Second)
-		connServer(tun)
+		connServer(tun, ss)
 	}
 
 	log.Info().Msg("start to connect server")

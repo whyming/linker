@@ -80,6 +80,16 @@ func (s *Sessions) ListConn() {
 	})
 }
 
+func (s *Sessions) CleanUp() {
+	s.conns.Range(func(key, _ any) bool {
+		conn, _ := s.conns.LoadAndDelete(key)
+		if c, ok := conn.(io.Closer); ok {
+			c.Close()
+		}
+		return true
+	})
+}
+
 var (
 	ErrSessionNotFound = errors.New("session not found")
 )
