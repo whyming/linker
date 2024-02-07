@@ -58,11 +58,11 @@ func (s *Sessions) readSession(guid uint64, conn io.ReadWriteCloser) {
 			n, err := conn.Read(buf)
 			if err != nil {
 				if err == io.EOF {
-					s.buff <- bullet.NewBullet(guid, bullet.CmdClose, []byte{})
 					log.Info().Uint64("guid", guid).Msg("session closed")
 				} else {
 					log.Error().Err(err).Msg("read session error")
 				}
+				s.buff <- bullet.NewBullet(guid, bullet.CmdClose, []byte{})
 				s.RemoveConn(guid)
 				return
 			} else {
