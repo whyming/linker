@@ -86,6 +86,7 @@ func (s *Sessions) CleanUp() {
 		if c, ok := conn.(io.Closer); ok {
 			c.Close()
 		}
+		s.buff <- bullet.NewBullet(key.(uint64), bullet.CmdClose, []byte{})
 		return true
 	})
 }

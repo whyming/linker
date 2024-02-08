@@ -38,6 +38,8 @@ func main() {
 		conn, err := net.Dial("tcp", *sessionAddr)
 		if err != nil {
 			log.Error().Err(err).Msg("connect to local session fail")
+		} else {
+			log.Info().Msg("connect to local session success")
 		}
 		return conn
 	})
@@ -62,6 +64,7 @@ func connServer(tun *tunnel.Tunnel, ss *session.Sessions) {
 		log.Error().Err(err).Msg("connect to server fail")
 		reConnect()
 	} else {
+		log.Info().Msg("connect to server succes")
 		tun.Bind(conn, reConnect)
 	}
 }

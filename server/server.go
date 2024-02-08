@@ -107,15 +107,16 @@ func startTunnel() *tunnel.Tunnel {
 
 func SignalProcess(ss *session.Sessions) {
 	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT)
+	signal.Notify(c, syscall.SIGHUP, syscall.SIGQUIT)
 	go func() {
 		for {
 			s := <-c
-			if s == syscall.SIGINT {
+			if s == syscall.SIGQUIT {
+				log.Info().Msg("list session guids")
 				ss.ListConn()
 			} else {
 				*debug = !*debug
-				log.Info().Bool("change to", !*debug).Msg("change debug mode")
+				log.Info().Bool("change to", *debug).Msg("change debug mode")
 				if *debug {
 					zerolog.SetGlobalLevel(zerolog.InfoLevel)
 				} else {
