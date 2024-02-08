@@ -20,7 +20,7 @@ type Sessions struct {
 	sync.RWMutex
 	conns sync.Map // map[uint64]net.Conn
 	buff  chan *bullet.Bullet
-	new   func() io.ReadWriteCloser
+	new   func(uint64) io.ReadWriteCloser
 }
 
 func NewSessions() *Sessions {
@@ -31,7 +31,7 @@ func NewSessions() *Sessions {
 }
 
 // 找不到时，被动触发
-func (s *Sessions) SetNew(f func() io.ReadWriteCloser) {
+func (s *Sessions) SetNew(f func(uint64) io.ReadWriteCloser) {
 	s.new = f
 }
 
@@ -60,7 +60,7 @@ func (s *Sessions) readSession(guid uint64, conn io.ReadWriteCloser) {
 				if err == io.EOF {
 					log.Info().Uint64("guid", guid).Msg("session closed")
 				} else {
-					log.Error().Err(err).Msg("read session error")
+					log.Error().Err(err).Uint64("guid", guid).Msg("read session error")
 				}
 				s.buff <- bullet.NewBullet(guid, bullet.CmdClose, []byte{})
 				s.RemoveConn(guid)
@@ -101,7 +101,7 @@ func (s *Sessions) Write(b *bullet.Bullet) error {
 		if s.new == nil {
 			return ErrSessionNotFound
 		} else {
-			c := s.new()
+			c := s.new(b.GetGuid())
 			if c == nil {
 				return ErrSessionNotFound
 			}

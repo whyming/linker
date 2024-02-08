@@ -34,12 +34,12 @@ func main() {
 	}
 
 	ss := session.NewSessions()
-	ss.SetNew(func() io.ReadWriteCloser {
+	ss.SetNew(func(guid uint64) io.ReadWriteCloser {
 		conn, err := net.Dial("tcp", *sessionAddr)
 		if err != nil {
-			log.Error().Err(err).Msg("connect to local session fail")
+			log.Error().Uint64("guid", guid).Err(err).Msg("connect to local session fail")
 		} else {
-			log.Info().Msg("connect to local session success")
+			log.Info().Uint64("guid", guid).Msg("connect to local session success")
 		}
 		return conn
 	})
